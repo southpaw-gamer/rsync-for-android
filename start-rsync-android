@@ -23,16 +23,19 @@ isDeviceConnected() {
 
 textEscape() {
     # From https://gist.github.com/Pistos/0bf26f46c04bc43cc95c224d264e9f39
-    text=$(printf '%s%%s' ${@})  # concatenate and replace spaces with %s
-    text=${text%%%s}  # remove the trailing %s
-    text=${text//\'/\\\'}  # escape single quotes
-    text=${text//\"/\\\"}  # escape double quotes
-    text=${text//\&/\\\&}  # escape ampersands
-    text=${text//\;/\\\;}  # escape semicolons
-    text=${text//\(/\\\(}  # escape opening parentheses
-    text=${text//\)/\\\)}  # escape closing parentheses
-    text=${text//\|/\\\|}  # escape pipes
-    echo "$text"
+    # Adapted for POSIX-restricted shells
+    text="$(printf "%s" "$@" |
+       sed 's/ /%s/g' |          # concatenate and replace spaces with %s
+       sed 's/'\''/\\'\''/g' |      # escape single quotes
+       sed 's/\"/\\\"/g' |          # escape double quotes
+       sed 's/&/\\&/g' |            # escape ampersands
+       sed 's/;/\\;/g' |            # escape semicolons
+       sed 's/(/\\(/g' |            # escape opening parentheses
+       sed 's/)/\\)/g' |            # escape closing parentheses
+       sed 's/|/\\|/g' |            # escape pipes
+       sed -r 's/^(.*)%s$/\1/'      # remove the trailing %s
+    )"
+    printf "%s\n" "$text"
 }
 
 # Wait
